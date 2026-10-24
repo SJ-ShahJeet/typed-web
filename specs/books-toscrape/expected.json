@@ -1,0 +1,49 @@
+{
+  "specVersion": 1,
+  "records": [
+    {
+      "id": "a-light-in-the-attic_1000",
+      "data": {
+        "title": "A Light in the Attic",
+        "price": {
+          "amount": 5177,
+          "currency": "GBP"
+        },
+        "inStock": "in_stock"
+      }
+    },
+    {
+      "id": "tipping-the-velvet_999",
+      "data": {
+        "title": "Tipping the Velvet",
+        "price": {
+          "amount": 5374,
+          "currency": "GBP"
+        },
+        "inStock": "in_stock"
+      }
+    },
+    {
+      "id": "soumission_998",
+      "data": {
+        "title": "Soumission",
+        "price": {
+          "amount": 5010,
+          "currency": "GBP"
+        },
+        "inStock": "in_stock"
+      }
+    }
+  ],
+  "stats": {
+    "nullRate": {
+      "title": 0.0,
+      "price": 0.0,
+      "inStock": 0.0
+    }
+  },
+  "compile": {
+    "pageUrl": "https://books.toscrape.com/catalogue/{id}/index.html",
+    "type": "Product"
+  }
+}

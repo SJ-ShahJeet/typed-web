@@ -1,0 +1,75 @@
+{
+  "site": "books-toscrape",
+  "version": 1,
+  "type": "Product",
+  "access": "open",
+  "locale": {
+    "lang": "en-us",
+    "currency": "GBP",
+    "dateOrder": "MDY"
+  },
+  "fetch": {
+    "url": "https://books.toscrape.com/catalogue/{id}/index.html",
+    "method": "GET",
+    "headers": {
+      "accept": "text/html"
+    },
+    "auth": "none",
+    "fetcher": "http"
+  },
+  "fields": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "div.col-sm-6 h1",
+          "all": false
+        },
+        {
+          "kind": "css",
+          "selector": "ul.breadcrumb li.active",
+          "all": false
+        }
+      ]
+    },
+    "price": {
+      "type": "money",
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "div.col-sm-6 p.price_color",
+          "all": false
+        }
+      ]
+    },
+    "inStock": {
+      "type": "enum",
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "div.col-sm-6 p.instock",
+          "all": false
+        }
+      ],
+      "coerce": "availability",
+      "values": [
+        "in_stock",
+        "out_of_stock",
+        "unknown"
+      ]
+    }
+  },
+  "freshness": {
+    "defaultMaxAge": "1h"
+  },
+  "verify": {
+    "samplePaths": [
+      "tipping-the-velvet_999",
+      "soumission_998"
+    ]
+  }
+}
