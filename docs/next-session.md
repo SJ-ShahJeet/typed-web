@@ -22,4 +22,4 @@ C. **Typed index and agent surface (build step 3).** `index.ts` on `node:sqlite`
 
 Stop after C and report. Do not start the compiler (build step 4) in that session.
 
-Rules: spec format changes touch schema + Pydantic + Zod together; tests never hit a live site; commit messages end with the Co-Authored-By line; when a design choice comes up, add the next D-ID to the doc's Decisions tab rather than deciding silently.
+Rules: spec format changes touch schema + Pydantic + Zod together; tests never hit a live site; when a design choice comes up, add the next D-ID to the doc's Decisions tab rather than deciding silently.

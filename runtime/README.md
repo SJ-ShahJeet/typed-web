@@ -6,7 +6,9 @@ TypeScript on Node 26. Runs forever with no model: reads a spec, fetches, extrac
 source ~/.nvm/nvm.sh && nvm use 26
 npm install
 npm test && npm run typecheck
-npx tsx src/cli.ts run ../specs/fixture-ssr/spec.json --id 1
+npx tsx src/cli.ts run ../specs/fixture-ssr/spec.json --id 1              # live fetch
+npx tsx src/cli.ts run ../specs/fixture-ssr/spec.json --id 1              # fromIndex: true within maxAge
+npx tsx src/cli.ts run ../specs/fixture-ssr/spec.json --id 1 --max-age 0s # force a live fetch
 npx tsx src/cli.ts check ../specs/fixture-ssr/spec.json
 npm run types          # writes web.d.ts from every spec in ../specs
 ```
@@ -23,4 +25,4 @@ npm run types          # writes web.d.ts from every spec in ../specs
 | `types.ts` | generates `web.d.ts` from the registry |
 | `cli.ts` | `run <spec> --id <id>`, `check <spec>` |
 
-`index.ts`, `types.ts` and `createWeb()` arrive in build step 3; `check` in build step 5 (design doc, Runtime tab). Tests start `fixtures/serve.py` themselves when nothing is listening on 8787.
+Every module exists except `check` (build step 5). The index lives at `data/index.sqlite` under the working directory unless `createWeb(dir, { indexPath })` or `--index` says otherwise (D16). Tests start `fixtures/serve.py` themselves when nothing is listening on 8787.

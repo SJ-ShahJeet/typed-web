@@ -46,7 +46,7 @@ Fixtures are the regression suite for the compiler. A new fixture is a folder un
 
 - Python: `ruff` defaults, type hints on public functions, `unittest` tests next to the code they test.
 - TypeScript: strict mode, no `any` in `src/`, `vitest` tests in `runtime/tests/`.
-- Commits: one logical change each; the subject line says what changed, the body says why. Reference the D-ID or issue.
+- Commits: one logical change each; the subject line says what changed, the body says why. Reference the D-ID or issue. No AI attribution trailers.
 
 ## Pull request checklist
 
