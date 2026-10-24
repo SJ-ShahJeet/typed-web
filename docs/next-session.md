@@ -6,20 +6,20 @@ Paste this as the first message of the next Claude Code session, from the GTM Bu
 
 Continue the Typed Web engine. Read these first, in order:
 
-1. `typed-web/docs/README.md` and the design doc it links (Typed Web — System Design, tabs Overview, Decisions, Spec format, Runtime, Testing). The doc is the source of truth; decisions are D1–D13.
-2. `typed-web/README.md` and `typed-web/CONTRIBUTING.md`.
-3. `git log --oneline -3` and `git show --stat HEAD` to see the scaffold commit.
+1. `typed-web/docs/README.md` and the design doc it links (Typed Web — System Design, tabs Overview, Decisions, Spec format, Compiler, Testing). The doc is the source of truth; decisions are D1–D16.
+2. `typed-web/README.md`, `typed-web/CONTRIBUTING.md`, `typed-web/runtime/README.md`.
+3. `git log --oneline -5` for the three build-step commits (CI move, runtime core, typed index).
 
-Environment: `source ~/.nvm/nvm.sh && nvm use 26` before any `runtime/` command; `uv` for `compiler/`; the repo path has a space, quote it. Memory notes are in the auto-memory dir.
+Done so far: public repo https://github.com/SJ-ShahJeet/typed-web (CI green, branch protection on `main`); runtime build steps 2 and 3 (`fetch`, `extract`, `coerce`, `validate`, `index`, `web`, `types`, `cli run`) with 32 vitest tests against the fixtures server; hand-written `specs/fixture-ssr/spec.json`.
+
+Environment: `source ~/.nvm/nvm.sh && nvm use 26` before any `runtime/` command; `uv` for `compiler/`; the repo path has a space, quote it. Publish with `git subtree push --prefix=typed-web typed-web main` after each commit and confirm CI is green.
 
 Then do, in this order, one commit each:
 
-A. **Publish.** Create a public GitHub repo `typed-web` under SJ-ShahJeet with `gh repo create`, AGPL-3.0, from the `typed-web/` folder (use `git subtree split --prefix=typed-web` so history is kept, or ask me whether I prefer a fresh history). Move `.github/workflows/typed-web.yml` from the GTM Builder root into `typed-web/.github/workflows/ci.yml` with working directories shortened. Enable branch protection on `main` requiring the CI checks. Confirm CI is green on the first push before moving on.
+D. **Compiler (build step 4).** `uv run compile <url> --type Product --out ../specs/<site>` climbs the ladder (Compiler tab): plain fetch, browser fetch, network diff for hidden endpoints, JSON-LD, ranked CSS. Verify on `verify.samplePaths`, write `spec.json`, `snapshot.html`, `expected.json`. Each of the three fixtures must compile to a spec the runtime executes to its `expected.json`. If rung 0 needs a marker in the spec (D14), change schema, Pydantic and Zod together.
 
-B. **Runtime core (build step 2).** Hand-write `specs/fixture-ssr/spec.json` against `fixtures/pages/ssr/{id}.html`. Implement `runtime/src/fetch.ts`, `extract.ts` (json path walker, jsonld flattener, state globals, css via cheerio), `coerce.ts`, `validate.ts`. `npx tsx src/cli.ts run ../specs/fixture-ssr/spec.json --id 1` must print `{ data, provenance }` with `rung: 3`. Vitest against the fixtures server; typecheck clean.
+E. **Change detection and repair (build step 5).** `cli.ts check` (hash → schema → null-rate drift, writes `status.json`), `uv run repair <site>`, and `scripts/loop.sh` passing end to end.
 
-C. **Typed index and agent surface (build step 3).** `index.ts` on `node:sqlite`, `web.ts` with `createWeb()` and `maxAge`, `types.ts` writing `web.d.ts`. Second `run` within `maxAge` returns `fromIndex: true`.
+Stop after E and report.
 
-Stop after C and report. Do not start the compiler (build step 4) in that session.
-
-Rules: spec format changes touch schema + Pydantic + Zod together; tests never hit a live site; when a design choice comes up, add the next D-ID to the doc's Decisions tab rather than deciding silently.
+Rules: spec format changes touch schema + Pydantic + Zod together; tests never hit a live site; no AI attribution lines in commits; when a design choice comes up, add the next D-ID to the doc's Decisions tab rather than deciding silently.
