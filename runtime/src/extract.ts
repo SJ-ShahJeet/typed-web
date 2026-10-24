@@ -4,6 +4,11 @@
  */
 import * as cheerio from "cheerio";
 import type { CheerioAPI } from "cheerio";
+import { DOMParser } from "@xmldom/xmldom";
+import xpathLib from "xpath";
+
+/** `parse()` ships in the package but not in its .d.ts. */
+const xpath = xpathLib as unknown as { parse(expr: string): { select(o: { node: Node; isHtml: boolean }): unknown } };
 import type { FieldSpec, Source, Spec } from "./spec.ts";
 
 /** Rung per source kind (Spec format tab). `json` reports 1; rung 0 needs a compiler-set API marker (D14). */
@@ -52,6 +57,7 @@ class Body {
   #json: unknown;
   #dom: CheerioAPI | undefined;
   #ld: Record<string, unknown>[] | undefined;
+  #xdoc: Document | undefined;
   constructor(private readonly text: string) {}
 
   json(): unknown {
@@ -59,6 +65,15 @@ class Body {
   }
   dom(): CheerioAPI {
     return (this.#dom ??= cheerio.load(this.text));
+  }
+  /**
+   * xmldom's HTML mode; `isHtml` lets `//th` match without the XHTML namespace (D28). The expression
+   * selects nodes and the first one's text answers; `string()` and other non-node results throw.
+   */
+  xpath(expr: string): string | null | undefined {
+    this.#xdoc ??= new DOMParser({ onError: () => {} }).parseFromString(this.text, "text/html") as unknown as Document;
+    const nodes = xpath.parse(expr).select({ node: this.#xdoc, isHtml: true }) as Node[];
+    return nodes.length ? nodes[0]!.textContent : undefined;
   }
   jsonld(): Record<string, unknown>[] {
     if (!this.#ld) {
@@ -128,7 +143,7 @@ function fromSource(body: Body, field: FieldSpec, s: Source): unknown {
       return sel.length ? read(0) : undefined;
     }
     case "xpath":
-      throw new Error("xpath sources are not implemented (milestone 2)");
+      return body.xpath(s.expr);
   }
 }
 
@@ -141,7 +156,7 @@ export function extract(spec: Spec, text: string): Extraction {
       try {
         v = fromSource(body, field, s);
       } catch (err) {
-        if (s.kind === "xpath") throw err;
+        if (s.kind === "xpath") throw err; // a malformed expression is a broken spec, not a missing value
         return false; // unparsable body for this kind: this source answers nothing
       }
       if (!answers(v)) return false;

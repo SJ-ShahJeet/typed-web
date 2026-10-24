@@ -50,7 +50,7 @@ Every tab, log line and provenance record uses the same numbers.
 | `jsonld` | `type`, `path` | Every `application/ld+json` block, `@graph` flattened, filtered by `@type` |
 | `state` | `global`, `path` | `__NEXT_DATA__`, `__NUXT__`, `__INITIAL_STATE__` and similar globals |
 | `css` | `selector`, `attr?`, `all?` | HTML5-parsed DOM; `attr` reads an attribute, `all` returns every match |
-| `xpath` | `expr` | Reserved for milestone 2; the milestone 1 runtime refuses it |
+| `xpath` | `expr` | XPath 1.0 over the HTML5-parsed DOM; plain element names (`//th`), no namespace prefix. The expression must select nodes; the first node's text answers. The compiler emits only label-keyed expressions, `//th[normalize-space()='UPC']/following-sibling::td[1]` (D24) |
 
 ## Types and coercion
 

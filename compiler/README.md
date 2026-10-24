@@ -22,7 +22,7 @@ so a compile log reads as the ladder it climbed.
 | `cli.py` | `compile` and `repair` entry points; wires the steps |
 | `fetch.py` | plain fetch (httpx: body, final URL, hash, timings) and rendered fetch (Playwright: DOM text plus network log) |
 | `detect.py` | steps 1–4 of the ladder: known patterns, JSON-LD and state blobs, DOM-vs-HTML diff, endpoint replay and header minimisation |
-| `locate.py` | step 5: candidate nodes per field, selector ranking, `choose()` hook for a future chooser model |
+| `locate.py` | step 5: candidate nodes per field, selector ranking, label-keyed xpath when no anchored selector exists (D24), `choose()` hook for a future chooser model |
 | `emit.py` | the Pydantic `Spec` model (mirror of `spec/spec.schema.json`), the type templates (`TYPES`) and value shapes, verify through the runtime CLI, write the three files |
 
-The ladder, the field-location signals and the stop conditions are specified in the design doc's Compiler tab; this README only says where the code is. Choices made while building it: D17 (sample discovery), D18 (`minorUnits` from a page cross-check), D19 (only anchored selectors become fallbacks), D20 (rung 0 marker deferred).
+The ladder, the field-location signals and the stop conditions are specified in the design doc's Compiler tab; this README only says where the code is. Choices made while building it: D17 (sample discovery), D18 (`minorUnits` from a page cross-check), D19 (only anchored selectors become fallbacks), D20 (rung 0 marker deferred), D24 (label-keyed xpath; optional fields such as `upc` come only from a label).

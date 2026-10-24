@@ -160,6 +160,8 @@ TYPES: dict[str, dict[str, FieldTemplate]] = {
             coerce="availability",
             values=("in_stock", "out_of_stock", "unknown"),
         ),
+        # optional; on HTML rungs found only by its label (D22, D24)
+        "upc": FieldTemplate("string", ("upc", "gtin", "barcode"), required=False),
     },
 }
 

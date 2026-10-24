@@ -16,7 +16,9 @@
     "cli": "tsx src/cli.ts"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
     "cheerio": "^1.2.0",
+    "xpath": "^0.0.35",
     "zod": "^3.24.0"
   },
   "devDependencies": {

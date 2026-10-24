@@ -1,6 +1,6 @@
 {
   "site": "books-toscrape",
-  "version": 1,
+  "version": 2,
   "type": "Product",
   "access": "open",
   "locale": {
@@ -60,6 +60,16 @@
         "in_stock",
         "out_of_stock",
         "unknown"
+      ]
+    },
+    "upc": {
+      "type": "string",
+      "required": false,
+      "sources": [
+        {
+          "kind": "xpath",
+          "expr": "//th[normalize-space()='UPC']/following-sibling::td[1]"
+        }
       ]
     }
   },

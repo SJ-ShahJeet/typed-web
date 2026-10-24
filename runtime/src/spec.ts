@@ -101,11 +101,6 @@ export function assertSupported(spec: Spec): void {
   if (spec.fetch.fetcher !== "http") {
     throw new Error(`spec ${spec.site}: fetcher '${spec.fetch.fetcher}' is milestone 2`);
   }
-  for (const [name, field] of Object.entries(spec.fields)) {
-    for (const s of field.sources) {
-      if (s.kind === "xpath") throw new Error(`spec ${spec.site}: field ${name} uses xpath (milestone 2)`);
-    }
-  }
 }
 
 export async function loadSpec(path: string): Promise<Spec> {

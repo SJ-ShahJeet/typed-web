@@ -1,0 +1,79 @@
+{
+  "site": "fixture-table",
+  "version": 1,
+  "type": "Product",
+  "access": "open",
+  "locale": {
+    "lang": "en-GB",
+    "currency": "GBP",
+    "dateOrder": "DMY"
+  },
+  "fetch": {
+    "url": "http://127.0.0.1:8787/table/{id}.html",
+    "method": "GET",
+    "headers": {
+      "accept": "text/html"
+    },
+    "auth": "none",
+    "fetcher": "http"
+  },
+  "fields": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "h1.title",
+          "all": false
+        }
+      ]
+    },
+    "price": {
+      "type": "money",
+      "required": true,
+      "sources": [
+        {
+          "kind": "xpath",
+          "expr": "//th[normalize-space()='Price']/following-sibling::td[1]"
+        }
+      ]
+    },
+    "inStock": {
+      "type": "enum",
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "p.availability",
+          "all": false
+        }
+      ],
+      "coerce": "availability",
+      "values": [
+        "in_stock",
+        "out_of_stock",
+        "unknown"
+      ]
+    },
+    "upc": {
+      "type": "string",
+      "required": false,
+      "sources": [
+        {
+          "kind": "xpath",
+          "expr": "//th[normalize-space()='UPC']/following-sibling::td[1]"
+        }
+      ]
+    }
+  },
+  "freshness": {
+    "defaultMaxAge": "1h"
+  },
+  "verify": {
+    "samplePaths": [
+      "2",
+      "3"
+    ]
+  }
+}

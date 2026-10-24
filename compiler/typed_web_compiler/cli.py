@@ -19,7 +19,7 @@ from selectolax.lexbor import LexborHTMLParser as HTMLParser
 
 from . import detect, emit, fetch, locate
 from .detect import CompileError
-from .emit import TYPES, CssSource, Fetch, FieldSpec, Freshness, JsonLdSource, JsonSource, Locale, Spec, StateSource, Verify
+from .emit import TYPES, CssSource, Fetch, FieldSpec, Freshness, JsonLdSource, JsonSource, Locale, Spec, StateSource, Verify, XPathSource
 
 DATE_ORDER = {"en-us": "MDY", "en": "DMY", "de": "DMY", "fr": "DMY", "es": "DMY", "it": "DMY", "nl": "DMY", "pt": "DMY", "ja": "YMD", "zh": "YMD", "ko": "YMD", "hu": "YMD", "sv": "YMD"}
 
@@ -128,12 +128,26 @@ def compile_site(page_url: str, type_: str, out: Path, samples: list[str] | None
     excluded: dict[str, set[str]] = {}
     chosen: dict[str, locate.Candidate] = {}
 
-    def locate_field(f: str) -> None:
+    def ensure_pages() -> None:
         if not pages:
             pages.extend(HTMLParser(h) for h in [p1.text, *(fetch.plain(template_url.replace("{id}", s), fetch.PAGE_HEADERS).text for s in sample_ids)])
+
+    def take_label(f: str) -> bool:
+        ensure_pages()
+        found = locate.label_xpath(f, templates[f], pages)
+        if found:
+            sources[f] = [XPathSource(expr=found[0])]
+            chosen.pop(f, None)
+            log(f"step 5 {f}: xpath {found[0]!r} = {found[1]!r} (label, D24)")
+        return found is not None
+
+    def locate_field(f: str) -> None:
+        ensure_pages()
         known_value = next((str(src) for src in rendered_values if f == "title"), None)
         cands = locate.candidates(f, templates[f], pages, known_value, frozenset(excluded.get(f, ())))
         pick = locate.choose(cands)
+        if (pick is None or pick.positional) and take_label(f):  # no anchored css: the label beats a position (D24)
+            return
         if pick is None:
             hint = " (only exists after JavaScript: fetcher 'browser' is milestone 2)" if rendered_values else ""
             raise CompileError(f"step 5: no candidate for field '{f}'{hint}")
@@ -145,6 +159,9 @@ def compile_site(page_url: str, type_: str, out: Path, samples: list[str] | None
     if fetch_url == template_url:
         for f in missing():
             locate_field(f)
+        for f in templates:
+            if not templates[f].required and f not in sources:
+                take_label(f)  # optional fields come only from a label; no label, no field
 
     # the spec
     lang = (HTMLParser(p1.text).css_first("html") or HTMLParser("<html>").root).attributes.get("lang") if p1.text else None

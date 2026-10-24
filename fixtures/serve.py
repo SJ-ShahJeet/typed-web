@@ -2,7 +2,8 @@
 """Serve the offline fixture pages on http://127.0.0.1:8787.
 
 Routes:
-  /shell/<id>.html, /jsonld/<id>.html, /ssr/<id>.html  -> fixtures/pages/<kind>/<id>.html
+  /shell/<id>.html, /jsonld/<id>.html, /ssr/<id>.html,
+  /table/<id>.html                                     -> fixtures/pages/<kind>/<id>.html
   /api/product/<id>                                    -> fixtures/api/product/<id>.json (application/json)
 
 Stdlib only; nothing to install. Used by both test suites and by `uv run compile`.

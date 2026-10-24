@@ -27,6 +27,17 @@ describe("extract", () => {
     expect(ex.warnings).toEqual([]);
   });
 
+  it("fixture-table: xpath reads by label, so page 3's reordered rows still answer (D24)", async () => {
+    const spec = await loadSpec(fixture("specs/fixture-table/spec.json"));
+    const ex = extract(spec, await readFile(fixture("fixtures/pages/table/3.html"), "utf8"));
+    expect(ex.values).toEqual({ title: "Base Layer Tee", price: "£34.00", inStock: "Out of stock", upc: "5012345678924" });
+    expect(ex.rung).toBe(3);
+    for (const expr of ["//th[", "string(//th)"]) {
+      spec.fields["upc"]!.sources = [{ kind: "xpath", expr }];
+      expect(() => extract(spec, "<p></p>")).toThrow(); // a broken or non-node expression is a broken spec, never a null
+    }
+  });
+
   it("a fallback source answering is a warning; a missing required field is absent", async () => {
     const spec = await loadSpec(fixture("specs/fixture-ssr/spec.json"));
     spec.fields["title"]!.sources.push({ kind: "css", selector: "h1", all: false }); // the compiled spec has no fallback (D19)

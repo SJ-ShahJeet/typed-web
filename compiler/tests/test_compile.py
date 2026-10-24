@@ -21,14 +21,15 @@ def setUpModule() -> None:
 
 
 class CompileFixtures(unittest.TestCase):
-    def compile(self, kind: str) -> tuple[dict, dict, Path]:
+    def compile(self, kind: str, extra: dict[str, dict] | None = None) -> tuple[dict, dict, Path]:
         out = Path(tempfile.mkdtemp(prefix="typed-web-")) / f"fixture-{kind}"
         compile_site(f"{FIXTURES}/{kind}/1.html", "Product", out)
         spec = json.loads((out / "spec.json").read_text())
         expected = json.loads((out / "expected.json").read_text())
         load_spec(out / "spec.json")  # round-trips through the model
-        self.assertEqual({r["id"]: r["data"] for r in expected["records"]}, TRUTH)
-        self.assertEqual(expected["stats"]["nullRate"], {"title": 0.0, "price": 0.0, "inStock": 0.0})
+        truth = {i: {**r, **(extra or {}).get(i, {})} for i, r in TRUTH.items()}
+        self.assertEqual({r["id"]: r["data"] for r in expected["records"]}, truth)
+        self.assertEqual(expected["stats"]["nullRate"], {f: 0.0 for f in truth["1"]})
         self.assertEqual(expected["compile"]["pageUrl"], f"{FIXTURES}/{kind}/{{id}}.html")
         self.assertEqual(spec["verify"]["samplePaths"], ["2", "3"])
         self.assertEqual(spec["locale"], {"lang": "en-GB", "currency": "GBP", "dateOrder": "DMY"})
@@ -55,6 +56,14 @@ class CompileFixtures(unittest.TestCase):
         self.assertEqual(self.kinds(spec), {"title": ["css"], "price": ["css"], "inStock": ["css"]})
         self.assertEqual(spec["fields"]["price"]["sources"], [{"kind": "css", "selector": "main.product span.price", "all": False}])
         self.assertEqual(spec["fields"]["title"]["sources"][0]["selector"], "main.product h1.title")
+
+    def test_table_compiles_to_label_keyed_xpath(self) -> None:
+        upc = {"1": {"upc": "5012345678900"}, "2": {"upc": "5012345678917"}, "3": {"upc": "5012345678924"}}
+        spec, _, _ = self.compile("table", upc)  # page 3 reorders the rows: TRUTH holds only if no position is used
+        self.assertEqual(self.kinds(spec), {"title": ["css"], "price": ["xpath"], "inStock": ["css"], "upc": ["xpath"]})
+        self.assertEqual(spec["fields"]["upc"]["sources"], [{"kind": "xpath", "expr": "//th[normalize-space()='UPC']/following-sibling::td[1]"}])
+        self.assertFalse(spec["fields"]["upc"]["required"])
+        self.assertNotIn("nth-child", json.dumps(spec))
 
 
 if __name__ == "__main__":

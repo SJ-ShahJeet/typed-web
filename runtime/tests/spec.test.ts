@@ -42,8 +42,8 @@ describe("spec v0 schema", () => {
 
   it("refuses milestone 2 features loudly instead of silently", async () => {
     const raw = JSON.parse(await readFile(example, "utf8"));
-    raw.fields.title.sources = [{ kind: "xpath", expr: "//h1" }];
+    raw.fetch.auth = "session"; // D25: static lands in milestone 2, session stays refused
     const spec = specSchema.parse(raw);
-    expect(() => assertSupported(spec)).toThrow(/xpath/);
+    expect(() => assertSupported(spec)).toThrow(/session/);
   });
 });

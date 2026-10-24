@@ -149,6 +149,39 @@ def candidates(field: str, tpl: FieldTemplate, pages: list[HTMLParser], known: s
     return out
 
 
+PAIR = {"th": "td", "dt": "dd"}
+
+
+def label_xpath(field: str, tpl: FieldTemplate, pages: list[HTMLParser]) -> tuple[str, str] | None:
+    """D24: a th/dt whose text is one of the field's aliases, read through its next td/dd.
+
+    Keyed on the label text, never a position, so a reordered table still answers. The label
+    must answer with the field's shape on every sample page. Returns (expr, first page value).
+    """
+    aliases = {a.lower() for a in tpl.aliases} | {field.lower()}
+
+    def cell(page: HTMLParser, tag: str, text: str) -> str | None:
+        for lab in page.css(tag):
+            if norm(lab.text(deep=True)) != text:
+                continue
+            n = lab.next
+            while n is not None and n.tag == "-text":
+                n = n.next
+            if n is not None and n.tag == PAIR[tag]:
+                v = norm(n.text(deep=True))
+                return v if shape(tpl, v) else None
+        return None
+
+    for lab in pages[0].css("th, dt"):
+        text = norm(lab.text(deep=True))
+        # ponytail: a label holding a quote is skipped; concat() quoting when a site needs one.
+        if text.rstrip(":").strip().lower() not in aliases or "'" in text:
+            continue
+        if all(cell(p, lab.tag, text) for p in pages):
+            return f"//{lab.tag}[normalize-space()='{text}']/following-sibling::{PAIR[lab.tag]}[1]", cell(pages[0], lab.tag, text) or ""
+    return None
+
+
 def choose(cands: list[Candidate]) -> Candidate | None:
     """The chooser hook (D6): milestone 1 takes the top candidate; a model slots in here."""
     return cands[0] if cands else None

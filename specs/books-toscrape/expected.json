@@ -1,5 +1,5 @@
 {
-  "specVersion": 1,
+  "specVersion": 2,
   "records": [
     {
       "id": "a-light-in-the-attic_1000",
@@ -9,7 +9,8 @@
           "amount": 5177,
           "currency": "GBP"
         },
-        "inStock": "in_stock"
+        "inStock": "in_stock",
+        "upc": "a897fe39b1053632"
       }
     },
     {
@@ -20,7 +21,8 @@
           "amount": 5374,
           "currency": "GBP"
         },
-        "inStock": "in_stock"
+        "inStock": "in_stock",
+        "upc": "90fa61229261140a"
       }
     },
     {
@@ -31,7 +33,8 @@
           "amount": 5010,
           "currency": "GBP"
         },
-        "inStock": "in_stock"
+        "inStock": "in_stock",
+        "upc": "6957f44c3847a760"
       }
     }
   ],
@@ -39,7 +42,8 @@
     "nullRate": {
       "title": 0.0,
       "price": 0.0,
-      "inStock": 0.0
+      "inStock": 0.0,
+      "upc": 0.0
     }
   },
   "compile": {
