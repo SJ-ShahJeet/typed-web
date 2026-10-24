@@ -1,0 +1,17 @@
+{
+  "product": {
+    "id": 3,
+    "name": "Base Layer Tee",
+    "sku": "BL-GRY-L",
+    "offers": {
+      "price": 3400,
+      "currency": "GBP",
+      "availability": "OutOfStock",
+      "availabilityText": "Out of stock"
+    },
+    "internal": {
+      "costHint": 1700,
+      "warehouse": "LDN-1"
+    }
+  }
+}

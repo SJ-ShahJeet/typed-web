@@ -1,0 +1,13 @@
+# Registry
+
+One folder per site, four files each, all produced by tools and committed:
+
+```
+specs/<site>/
+├── spec.json        the extractor (compiler output)
+├── snapshot.html    raw body of the first sample page at compile time
+├── expected.json    records for every verify.samplePaths page, plus null-rate stats
+└── status.json      ok · schema_failure · drift · repairing (runtime check output)
+```
+
+Nothing here is hand-written. To add a site, run `uv run compile` in `compiler/` and commit what it emits; see `CONTRIBUTING.md` for what the pull request must declare. The milestone 1 entries will be `fixture-shell`, `fixture-jsonld`, `fixture-ssr` and `books-toscrape`.

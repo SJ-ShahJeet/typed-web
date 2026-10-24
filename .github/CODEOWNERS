@@ -1,0 +1,9 @@
+# Review routing. GitHub reads this file once typed-web is its own repository;
+# until then it documents who owns what. Replace OWNER with the maintainer's
+# GitHub login (an @-prefixed handle) before extracting the repo.
+#
+# *            @OWNER
+# /spec/       @OWNER
+# /compiler/   @OWNER
+# /runtime/    @OWNER
+# /specs/      @OWNER

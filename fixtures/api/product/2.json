@@ -1,0 +1,17 @@
+{
+  "product": {
+    "id": 2,
+    "name": "Summit Jacket",
+    "sku": "SJ-RED-M",
+    "offers": {
+      "price": 24950,
+      "currency": "GBP",
+      "availability": "InStock",
+      "availabilityText": "In stock (2 available)"
+    },
+    "internal": {
+      "costHint": 12475,
+      "warehouse": "LDN-1"
+    }
+  }
+}

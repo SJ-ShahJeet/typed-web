@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://typed-web.dev/spec/v0/spec.schema.json",
+  "title": "Typed Web extractor spec v0",
+  "description": "One file per site. The compiler writes it, the runtime reads it. Nothing in it can execute.",
+  "type": "object",
+  "required": ["site", "version", "type", "fetch", "fields", "verify"],
+  "additionalProperties": false,
+  "properties": {
+    "site": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Registry folder name and agent namespace (kebab-case; becomes camelCase in web.<site>)."
+    },
+    "version": { "type": "integer", "minimum": 1, "description": "Bumped on every repair." },
+    "type": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*$",
+      "description": "schema.org type the record conforms to, e.g. Product, JobPosting, NewsArticle."
+    },
+    "access": {
+      "type": "string",
+      "enum": ["open", "rate-limited", "challenged"],
+      "default": "open",
+      "description": "Detected at compile time. Milestone 1 runtime supports open only."
+    },
+    "locale": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lang": { "type": "string", "description": "BCP 47, e.g. en-GB." },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "description": "ISO 4217 default when a price carries no symbol." },
+        "dateOrder": { "type": "string", "enum": ["DMY", "MDY", "YMD"] }
+      }
+    },
+    "fetch": {
+      "type": "object",
+      "required": ["url"],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https?://.*\\{id\\}.*$",
+          "description": "Exactly one {id} placeholder; the agent's id fills it and keys the record."
+        },
+        "method": { "type": "string", "enum": ["GET", "POST"], "default": "GET" },
+        "headers": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Pinned request headers so every run asks the same question." },
+        "auth": { "type": "string", "enum": ["none", "static", "session", "computed"], "default": "none" },
+        "fetcher": { "type": "string", "enum": ["http", "browser"], "default": "http" }
+      }
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+      "additionalProperties": { "$ref": "#/$defs/field" }
+    },
+    "freshness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "defaultMaxAge": { "$ref": "#/$defs/duration" }
+      }
+    },
+    "verify": {
+      "type": "object",
+      "required": ["samplePaths"],
+      "additionalProperties": false,
+      "properties": {
+        "samplePaths": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Ids of other pages of the same site; the draft spec must validate on all of them before emit."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "duration": {
+      "type": "string",
+      "pattern": "^(\\d+)(s|m|h|d)$",
+      "description": "Shorthand duration: 30s, 15m, 1h, 7d."
+    },
+    "field": {
+      "type": "object",
+      "required": ["type", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["string", "number", "money", "date", "enum", "boolean", "url"] },
+        "required": { "type": "boolean", "default": true },
+        "sources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/source" }, "description": "Ordered fallbacks, most stable first." },
+        "coerce": { "type": "string", "description": "Named coercer, e.g. availability, or equals:<literal> for booleans." },
+        "range": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "min": { "type": "number" }, "max": { "type": "number" } }
+        },
+        "values": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Allowed values for type enum." }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "enum" } } }, "then": { "required": ["values"] } }
+      ]
+    },
+    "source": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "path"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "json" },
+            "path": { "type": "string", "minLength": 1, "description": "Dotted or bracket path into the response body, e.g. product.offers[0].price." }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "type", "path"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "jsonld" },
+            "type": { "type": "string", "description": "@type to select among all ld+json blocks after @graph is flattened." },
+            "path": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "global", "path"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "state" },
+            "global": { "type": "string", "description": "Framework state global, e.g. __NEXT_DATA__." },
+            "path": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "selector"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "css" },
+            "selector": { "type": "string", "minLength": 1 },
+            "attr": { "type": "string", "description": "Read this attribute instead of text content." },
+            "all": { "type": "boolean", "default": false, "description": "Return every match instead of the first." }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "expr"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "xpath" },
+            "expr": { "type": "string", "minLength": 1, "description": "Milestone 2: not implemented by the milestone 1 runtime." }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "product": {
+    "id": 1,
+    "name": "Trail Runner 3",
+    "sku": "TR3-BLK-42",
+    "offers": {
+      "price": 12900,
+      "currency": "GBP",
+      "availability": "InStock",
+      "availabilityText": "In stock (7 available)"
+    },
+    "internal": {
+      "costHint": 6450,
+      "warehouse": "LDN-1"
+    }
+  }
+}
