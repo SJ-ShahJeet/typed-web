@@ -29,6 +29,7 @@ describe("extract", () => {
 
   it("a fallback source answering is a warning; a missing required field is absent", async () => {
     const spec = await loadSpec(fixture("specs/fixture-ssr/spec.json"));
+    spec.fields["title"]!.sources.push({ kind: "css", selector: "h1", all: false }); // the compiled spec has no fallback (D19)
     const html = (await readFile(fixture("fixtures/pages/ssr/1.html"), "utf8")).replace('class="title"', 'class="name"').replace('class="price"', 'class="cost"');
     const ex = extract(spec, html);
     expect(ex.sources).toEqual({ title: 1, inStock: 0 });

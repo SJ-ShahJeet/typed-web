@@ -58,7 +58,7 @@ Every tab, log line and provenance record uses the same numbers.
 | --- | --- | --- |
 | `string` | string | trim, collapse whitespace, decode entities, Unicode NFC |
 | `number` | number | strip thousands separators per locale, parse decimal |
-| `money` | `{ amount: integer minor units, currency: ISO 4217 }` | strip symbols, detect decimal separator by locale; never a float |
+| `money` | `{ amount: integer minor units, currency: ISO 4217 }` | strip symbols, detect decimal separator by locale; never a float. `coerce: "minorUnits"` when the source already serves integer minor units (currency from `locale.currency`) |
 | `date` | ISO 8601 with offset | parse by `locale.dateOrder`; ambiguous without a locale is a failure |
 | `enum` | one of `values` | named coercer in `coerce`, e.g. `availability` |
 | `boolean` | boolean | `coerce: "equals:<literal>"`, or presence of a node |
@@ -98,7 +98,7 @@ Each `specs/<site>/` folder holds four files.
 | --- | --- | --- |
 | `spec.json` | compiler | This format |
 | `snapshot.html` | compiler | Raw body of the first sample page at compile time; lets compiler tests re-run offline |
-| `expected.json` | compiler, at verify | `{ specVersion, records: [{ id, data }], stats: { nullRate: { field: 0..1 } } }` |
+| `expected.json` | compiler, at verify | `{ specVersion, records: [{ id, data }], stats: { nullRate: { field: 0..1 } }, compile: { pageUrl, type } }`; `records` covers the compile page and every `verify.samplePaths` page, `compile.pageUrl` is the page template `repair` re-runs the ladder on |
 | `status.json` | runtime `run`/`check`, compiler `repair` | `{ state: ok · schema_failure · drift · repairing, since, specVersion, detail }` |
 
 A worked example is in [`examples/books-toscrape.spec.json`](examples/books-toscrape.spec.json); both test suites validate it.

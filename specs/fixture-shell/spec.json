@@ -1,0 +1,68 @@
+{
+  "site": "fixture-shell",
+  "version": 1,
+  "type": "Product",
+  "access": "open",
+  "locale": {
+    "lang": "en-GB",
+    "currency": "GBP",
+    "dateOrder": "DMY"
+  },
+  "fetch": {
+    "url": "http://127.0.0.1:8787/api/product/{id}",
+    "method": "GET",
+    "headers": {
+      "accept": "application/json"
+    },
+    "auth": "none",
+    "fetcher": "http"
+  },
+  "fields": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "sources": [
+        {
+          "kind": "json",
+          "path": "product.name"
+        }
+      ]
+    },
+    "price": {
+      "type": "money",
+      "required": true,
+      "sources": [
+        {
+          "kind": "json",
+          "path": "product.offers.price"
+        }
+      ],
+      "coerce": "minorUnits"
+    },
+    "inStock": {
+      "type": "enum",
+      "required": true,
+      "sources": [
+        {
+          "kind": "json",
+          "path": "product.offers.availability"
+        }
+      ],
+      "coerce": "availability",
+      "values": [
+        "in_stock",
+        "out_of_stock",
+        "unknown"
+      ]
+    }
+  },
+  "freshness": {
+    "defaultMaxAge": "1h"
+  },
+  "verify": {
+    "samplePaths": [
+      "2",
+      "3"
+    ]
+  }
+}

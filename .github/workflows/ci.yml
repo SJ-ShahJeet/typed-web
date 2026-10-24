@@ -29,8 +29,16 @@ jobs:
         working-directory: compiler
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: runtime/package-lock.json
+      - run: npm ci
+        working-directory: runtime
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.14"
       - run: uv sync
+      - run: uv run playwright install --with-deps chromium
       - run: uv run python -m unittest -q

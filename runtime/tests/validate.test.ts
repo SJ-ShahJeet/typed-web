@@ -13,6 +13,7 @@ describe("validate", () => {
 
   it("schema_failure names the field for a missing required value and a range miss (major units)", async () => {
     const spec = await loadSpec(specPath);
+    spec.fields["price"]!.range = { min: 1, max: 10000 }; // compiled specs carry no range; the bound under test is D15
     expect(validateRecord(spec, { ...good, price: null })).toMatchObject({ outcome: "schema_failure", issues: [expect.stringMatching(/^price/)] });
     expect(validateRecord(spec, { ...good, price: { amount: 1_000_100, currency: "GBP" } })).toMatchObject({ outcome: "schema_failure" });
     expect(validateRecord(spec, { ...good, price: { amount: 1_000_000, currency: "GBP" } }).outcome).toBe("ok");

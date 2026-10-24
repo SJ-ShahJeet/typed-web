@@ -3,34 +3,68 @@
   "version": 1,
   "type": "Product",
   "access": "open",
-  "locale": { "lang": "en-GB", "currency": "GBP", "dateOrder": "DMY" },
+  "locale": {
+    "lang": "en-GB",
+    "currency": "GBP",
+    "dateOrder": "DMY"
+  },
   "fetch": {
     "url": "http://127.0.0.1:8787/ssr/{id}.html",
     "method": "GET",
-    "headers": { "accept": "text/html" },
+    "headers": {
+      "accept": "text/html"
+    },
     "auth": "none",
     "fetcher": "http"
   },
   "fields": {
     "title": {
       "type": "string",
+      "required": true,
       "sources": [
-        { "kind": "css", "selector": "main.product h1.title" },
-        { "kind": "css", "selector": "h1" }
+        {
+          "kind": "css",
+          "selector": "main.product h1.title",
+          "all": false
+        }
       ]
     },
     "price": {
       "type": "money",
-      "range": { "min": 1, "max": 10000 },
-      "sources": [{ "kind": "css", "selector": "main.product span.price" }]
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "main.product span.price",
+          "all": false
+        }
+      ]
     },
     "inStock": {
       "type": "enum",
-      "values": ["in_stock", "out_of_stock", "unknown"],
+      "required": true,
+      "sources": [
+        {
+          "kind": "css",
+          "selector": "main.product p.availability",
+          "all": false
+        }
+      ],
       "coerce": "availability",
-      "sources": [{ "kind": "css", "selector": "main.product p.availability" }]
+      "values": [
+        "in_stock",
+        "out_of_stock",
+        "unknown"
+      ]
     }
   },
-  "freshness": { "defaultMaxAge": "1h" },
-  "verify": { "samplePaths": ["2", "3"] }
+  "freshness": {
+    "defaultMaxAge": "1h"
+  },
+  "verify": {
+    "samplePaths": [
+      "2",
+      "3"
+    ]
+  }
 }

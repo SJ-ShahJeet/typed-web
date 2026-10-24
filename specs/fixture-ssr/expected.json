@@ -1,0 +1,49 @@
+{
+  "specVersion": 1,
+  "records": [
+    {
+      "id": "1",
+      "data": {
+        "title": "Trail Runner 3",
+        "price": {
+          "amount": 12900,
+          "currency": "GBP"
+        },
+        "inStock": "in_stock"
+      }
+    },
+    {
+      "id": "2",
+      "data": {
+        "title": "Summit Jacket",
+        "price": {
+          "amount": 24950,
+          "currency": "GBP"
+        },
+        "inStock": "in_stock"
+      }
+    },
+    {
+      "id": "3",
+      "data": {
+        "title": "Base Layer Tee",
+        "price": {
+          "amount": 3400,
+          "currency": "GBP"
+        },
+        "inStock": "out_of_stock"
+      }
+    }
+  ],
+  "stats": {
+    "nullRate": {
+      "title": 0.0,
+      "price": 0.0,
+      "inStock": 0.0
+    }
+  },
+  "compile": {
+    "pageUrl": "http://127.0.0.1:8787/ssr/{id}.html",
+    "type": "Product"
+  }
+}

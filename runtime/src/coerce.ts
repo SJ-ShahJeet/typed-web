@@ -45,10 +45,18 @@ function decimalString(s: string, locale: Locale): string {
 
 const number = (raw: unknown, locale: Locale) => (typeof raw === "number" ? raw : Number(decimalString(text(raw), locale)));
 
-function money(raw: unknown, locale: Locale): Money {
+function money(raw: unknown, locale: Locale, field: FieldSpec): Money {
   if (raw !== null && typeof raw === "object" && "amount" in raw && "currency" in raw) {
     const m = raw as Record<string, unknown>;
     if (Number.isInteger(m["amount"]) && typeof m["currency"] === "string") return { amount: m["amount"] as number, currency: m["currency"] };
+  }
+  if (field.coerce && field.coerce !== "minorUnits") throw new CoerceError(`unknown coercer '${field.coerce}' for money`);
+  if (field.coerce === "minorUnits") {
+    // the endpoint already serves minor units (compiler cross-checked it against the page, D18)
+    const n = typeof raw === "number" ? raw : Number(text(raw));
+    if (!Number.isInteger(n)) throw new CoerceError(`minorUnits expects an integer, got '${String(raw)}'`);
+    if (!locale.currency) throw new CoerceError("minorUnits needs locale.currency");
+    return { amount: n, currency: locale.currency };
   }
   const s = text(raw);
   const code = /\b([A-Z]{3})\b/.exec(s)?.[1];
@@ -122,7 +130,7 @@ export function coerceValue(field: FieldSpec, raw: unknown, ctx: Context): unkno
     case "number":
       return number(raw, ctx.locale);
     case "money":
-      return money(raw, ctx.locale);
+      return money(raw, ctx.locale, field);
     case "date":
       return date(raw, ctx.locale);
     case "enum":

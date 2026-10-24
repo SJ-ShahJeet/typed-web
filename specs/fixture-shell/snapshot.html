@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><title>Fixture Store</title></head>
+<body><nav><a href="/">Home</a> · <a href="/about">About</a> · <a href="/cart">Cart</a></nav>
+<div id="root"></div>
+<script>
+  fetch('/api/product/1')
+    .then(r => r.json())
+    .then(p => {
+      document.title = p.product.name + ' – Fixture Store';
+      document.getElementById('root').innerHTML =
+        '<main class="product"><h1>' + p.product.name + '</h1>' +
+        '<p class="price">£' + (p.product.offers.price / 100).toFixed(2) + '</p>' +
+        '<p class="availability">' + p.product.offers.availabilityText + '</p></main>';
+    });
+</script><footer>© Fixture Store · all prices in GBP</footer></body></html>

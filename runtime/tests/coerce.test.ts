@@ -14,6 +14,11 @@ describe("coerce", () => {
     expect(coerceValue(field({ type: "money" }), "¥1500", ctx)).toEqual({ amount: 1500, currency: "JPY" });
     expect(coerceValue(field({ type: "money" }), "19.99", ctx)).toEqual({ amount: 1999, currency: "GBP" }); // locale currency
     expect(() => coerceValue(field({ type: "money" }), "19.99", { ...ctx, locale: {} })).toThrow(CoerceError);
+    // D18: an endpoint that already serves minor units
+    expect(coerceValue(field({ type: "money", coerce: "minorUnits" }), 12900, ctx)).toEqual({ amount: 12900, currency: "GBP" });
+    expect(() => coerceValue(field({ type: "money", coerce: "minorUnits" }), 129.5, ctx)).toThrow(CoerceError);
+    expect(() => coerceValue(field({ type: "money", coerce: "minorUnits" }), 12900, { ...ctx, locale: {} })).toThrow(CoerceError);
+    expect(() => coerceValue(field({ type: "money", coerce: "cents" }), 12900, ctx)).toThrow(CoerceError);
   });
 
   it("number: thousands separators per locale", () => {

@@ -1,0 +1,70 @@
+{
+  "site": "fixture-jsonld",
+  "version": 1,
+  "type": "Product",
+  "access": "open",
+  "locale": {
+    "lang": "en-GB",
+    "currency": "GBP",
+    "dateOrder": "DMY"
+  },
+  "fetch": {
+    "url": "http://127.0.0.1:8787/jsonld/{id}.html",
+    "method": "GET",
+    "headers": {
+      "accept": "text/html"
+    },
+    "auth": "none",
+    "fetcher": "http"
+  },
+  "fields": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "sources": [
+        {
+          "kind": "jsonld",
+          "type": "Product",
+          "path": "name"
+        }
+      ]
+    },
+    "price": {
+      "type": "money",
+      "required": true,
+      "sources": [
+        {
+          "kind": "jsonld",
+          "type": "Product",
+          "path": "offers.price"
+        }
+      ]
+    },
+    "inStock": {
+      "type": "enum",
+      "required": true,
+      "sources": [
+        {
+          "kind": "jsonld",
+          "type": "Product",
+          "path": "offers.availability"
+        }
+      ],
+      "coerce": "availability",
+      "values": [
+        "in_stock",
+        "out_of_stock",
+        "unknown"
+      ]
+    }
+  },
+  "freshness": {
+    "defaultMaxAge": "1h"
+  },
+  "verify": {
+    "samplePaths": [
+      "2",
+      "3"
+    ]
+  }
+}
