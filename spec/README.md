@@ -64,7 +64,7 @@ Every tab, log line and provenance record uses the same numbers.
 | `boolean` | boolean | `coerce: "equals:<literal>"`, or presence of a node |
 | `url` | absolute URL | resolved against the final URL |
 
-`range` on `number` and `money` turns an implausible value into a validation failure rather than a served record.
+`range` on `number` and `money` turns an implausible value into a validation failure rather than a served record. For `money` the range is in major units, what a person reads on the page (`{ "min": 1, "max": 10000 }` means £1 to £10,000), while `amount` is stored in minor units.
 
 ## What the runtime returns
 

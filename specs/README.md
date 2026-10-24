@@ -10,4 +10,4 @@ specs/<site>/
 └── status.json      ok · schema_failure · drift · repairing (runtime check output)
 ```
 
-Nothing here is hand-written. To add a site, run `uv run compile` in `compiler/` and commit what it emits; see `CONTRIBUTING.md` for what the pull request must declare. The milestone 1 entries will be `fixture-shell`, `fixture-jsonld`, `fixture-ssr` and `books-toscrape`.
+Nothing here is hand-written except `fixture-ssr/spec.json`, the runtime's bootstrap target until the compiler lands and overwrites it. To add a site, run `uv run compile` in `compiler/` and commit what it emits; see `CONTRIBUTING.md` for what the pull request must declare. The milestone 1 entries will be `fixture-shell`, `fixture-jsonld`, `fixture-ssr` and `books-toscrape`.

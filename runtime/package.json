@@ -4,7 +4,9 @@
   "description": "Run Typed Web extractor specs with no model: fetch, extract, coerce, validate, index.",
   "license": "AGPL-3.0-only",
   "type": "module",
-  "engines": { "node": ">=22.5" },
+  "engines": {
+    "node": ">=22.5"
+  },
   "main": "./src/web.ts",
   "types": "./src/web.ts",
   "scripts": {
@@ -14,6 +16,7 @@
     "cli": "tsx src/cli.ts"
   },
   "dependencies": {
+    "cheerio": "^1.2.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

@@ -1,12 +1,11 @@
 /**
- * `run <spec> --id <id>`  prints { data, provenance } for one record
- * `check <spec>`          writes specs/<site>/status.json
- *
- * Build order (design doc, Runtime tab): spec -> fetch -> extract -> coerce -> validate -> index -> web.
- * Until a step exists the CLI says so instead of pretending.
+ * `run <spec> --id <id>`  prints { data, provenance } for one record and writes status.json
+ * `check <spec>`          writes specs/<site>/status.json (build step 5)
  */
+import { dirname } from "node:path";
 import { parseArgs } from "node:util";
-import { assertSupported, loadSpec, urlFor } from "./spec.ts";
+import { assertSupported, loadSpec } from "./spec.ts";
+import { SchemaFailure, fetchRecord, writeStatus } from "./web.ts";
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
@@ -22,6 +21,7 @@ if (!command || !specPath) {
 
 const spec = await loadSpec(specPath);
 assertSupported(spec);
+const specDir = dirname(specPath);
 
 switch (command) {
   case "run": {
@@ -29,9 +29,16 @@ switch (command) {
       console.error("run needs --id <id>");
       process.exit(2);
     }
-    console.error(`run: ${spec.site} v${spec.version} -> ${urlFor(spec, values.id)}`);
-    console.error("not implemented yet: milestone 1 build step 2 (fetch, extract, coerce, validate)");
-    process.exit(2);
+    try {
+      const record = await fetchRecord(spec, values.id);
+      await writeStatus(specDir, spec, "ok");
+      console.log(JSON.stringify(record, null, 2));
+    } catch (err) {
+      if (!(err instanceof SchemaFailure)) throw err;
+      await writeStatus(specDir, spec, "schema_failure", { id: values.id, fields: err.issues });
+      console.error(`schema_failure: ${err.message}`);
+      process.exit(1);
+    }
     break;
   }
   case "check": {

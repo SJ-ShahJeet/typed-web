@@ -23,4 +23,4 @@ npm run types          # writes web.d.ts from every spec in ../specs
 | `types.ts` | generates `web.d.ts` from the registry |
 | `cli.ts` | `run <spec> --id <id>`, `check <spec>` |
 
-Only `spec.ts` and `cli.ts` exist so far; the rest arrive one build step at a time (design doc, Runtime tab).
+`index.ts`, `types.ts` and `createWeb()` arrive in build step 3; `check` in build step 5 (design doc, Runtime tab). Tests start `fixtures/serve.py` themselves when nothing is listening on 8787.
