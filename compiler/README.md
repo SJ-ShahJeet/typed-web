@@ -8,7 +8,7 @@ source ~/.nvm/nvm.sh && nvm use 26   # verify runs the runtime CLI, so node must
 uv run compile http://127.0.0.1:8787/shell/1.html --type Product --out ../specs/fixture-shell
 uv run compile https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html --type Product \
   --out ../specs/books-toscrape --samples tipping-the-velvet_999,soumission_998
-uv run repair fixture-shell
+uv run repair fixture-shell          # status repairing -> recompiles from expected.json's pageUrl -> v+1, status ok
 uv run python -m unittest -q        # offline; starts ../fixtures/serve.py itself when nothing listens on 8787
 ```
 

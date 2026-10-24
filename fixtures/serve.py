@@ -6,10 +6,12 @@ Routes:
   /api/product/<id>                                    -> fixtures/api/product/<id>.json (application/json)
 
 Stdlib only; nothing to install. Used by both test suites and by `uv run compile`.
+`--root <dir> --port <n>` serves a copy of this folder elsewhere (the repair test mutates one).
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -49,8 +51,15 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"fixtures: http://127.0.0.1:{PORT}  (ctrl-c to stop)")
+    global PAGES, API
+    p = argparse.ArgumentParser()
+    p.add_argument("--quiet", action="store_true")
+    p.add_argument("--port", type=int, default=PORT)
+    p.add_argument("--root", type=Path, default=ROOT, help="a folder with pages/ and api/ like this one")
+    args = p.parse_args()
+    PAGES, API = args.root / "pages", args.root / "api"
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
+    print(f"fixtures: http://127.0.0.1:{args.port}  (ctrl-c to stop)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

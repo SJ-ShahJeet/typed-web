@@ -80,6 +80,12 @@ export class Index {
     };
   }
 
+  /** Data of every record of a site and type that is current (`status = 'ok'`); feeds the drift check. */
+  records(site: string, type: string): Record<string, unknown>[] {
+    const rows = this.#db.prepare("SELECT data FROM records WHERE site = ? AND type = ? AND status = 'ok'").all(site, type) as Row[];
+    return rows.map((r) => JSON.parse(r["data"] as string) as Record<string, unknown>);
+  }
+
   /** Milliseconds since the stored record was fetched, or undefined when none is stored. */
   ageOf(site: string, type: string, id: string): number | undefined {
     const r = this.#db.prepare("SELECT fetched_at FROM records WHERE site = ? AND type = ? AND id = ?").get(site, type, id) as Row | undefined;

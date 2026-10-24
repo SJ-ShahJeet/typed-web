@@ -30,7 +30,7 @@ def ensure_fixtures() -> None:
     if _up():
         return
     proc = subprocess.Popen([sys.executable, str(ROOT / "fixtures" / "serve.py"), "--quiet"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    atexit.register(proc.kill)
+    atexit.register(lambda: (proc.kill(), proc.wait()))
     for _ in range(50):
         if _up():
             return

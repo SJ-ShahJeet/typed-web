@@ -12,7 +12,7 @@ import { extract } from "./extract.ts";
 import { HttpError, httpFetch, type FetchResult, type Timings } from "./fetch.ts";
 import { Index } from "./index.ts";
 import { assertSupported, specSchema, urlFor, type Spec } from "./spec.ts";
-import { validateRecord } from "./validate.ts";
+import { driftingFields, validateRecord } from "./validate.ts";
 
 export interface Provenance {
   site: string;
@@ -184,11 +184,71 @@ export async function runSpec(spec: Spec, specDir: string, id: string, index: In
     throw err;
   }
 
-  // 9. index and return
+  // 9. index and return; a site in `drift` serves fresh records with the warning (Runtime tab)
   index.put(type, id, record, { etag: res.etag, lastModified: res.lastModified });
   log("ok", record.provenance.timings);
-  await writeStatus(specDir, spec, "ok", {}, index);
+  const status = index.getStatus(site);
+  if (status?.state === "drift") {
+    record.provenance.warnings.push(...((status.detail["fields"] as string[] | undefined) ?? []).map((f) => `drift:${f}`));
+  } else {
+    await writeStatus(specDir, spec, "ok", {}, index);
+  }
   return record;
+}
+
+interface Expected {
+  specVersion: number;
+  records: Array<{ id: string; data: Record<string, unknown> }>;
+  stats: { nullRate: Record<string, number> };
+}
+
+export interface CheckResult {
+  state: SiteState;
+  detail: Record<string, unknown>;
+  checked: string[];
+}
+
+/**
+ * `check <spec>`: the three checks cheapest first over the pages in expected.json (D8, D21).
+ * Hash and schema run inside runSpec per page; drift runs once over the site's indexed records.
+ * HTTP errors keep the current state. Writes specs/<site>/status.json and returns what it wrote.
+ */
+export async function checkSite(spec: Spec, specDir: string, index: Index): Promise<CheckResult> {
+  const expected = JSON.parse(await readFile(join(specDir, "expected.json"), "utf8")) as Expected;
+  const ids = expected.records.map((r) => r.id);
+  const failures: Record<string, string[]> = {};
+  const unreachable: Record<string, number> = {};
+  for (const id of ids) {
+    try {
+      await runSpec(spec, specDir, id, index, { maxAge: "0s", allowStale: false });
+    } catch (err) {
+      if (err instanceof SchemaFailure) failures[id] = err.issues;
+      else if (err instanceof HttpError) unreachable[id] = err.status;
+      else throw err;
+    }
+  }
+  let state: SiteState;
+  let detail: Record<string, unknown> = {};
+  if (Object.keys(failures).length) {
+    state = "schema_failure";
+    detail = { failures };
+  } else if (Object.keys(unreachable).length === ids.length) {
+    let prev: { state?: SiteState } = {};
+    try {
+      prev = JSON.parse(await readFile(join(specDir, "status.json"), "utf8")) as { state?: SiteState };
+    } catch {
+      /* no status yet */
+    }
+    state = prev.state ?? "ok";
+  } else {
+    const records = index.records(spec.site, spec.type);
+    const fields = driftingFields(expected.stats.nullRate, records);
+    state = fields.length ? "drift" : "ok";
+    if (fields.length) detail = { fields, records: records.length };
+  }
+  if (Object.keys(unreachable).length) detail = { ...detail, unreachable };
+  await writeStatus(specDir, spec, state, detail, index);
+  return { state, detail, checked: ids };
 }
 
 export function loadRegistry(registryDir: string): Map<string, { spec: Spec; dir: string }> {

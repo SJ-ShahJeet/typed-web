@@ -1,6 +1,6 @@
 /**
- * The record schema built from a spec's `fields`, and the ok / schema_failure verdict
- * (design doc, Runtime tab, step 8). `drift` is decided by `check` over many records, not here.
+ * The record schema built from a spec's `fields`, the ok / schema_failure verdict
+ * (design doc, Runtime tab, step 8), and the null-rate drift rule `check` applies over many records.
  */
 import { z } from "zod";
 import { minorUnits } from "./coerce.ts";
@@ -59,4 +59,25 @@ export function validateRecord(spec: Spec, data: Record<string, unknown>): Valid
   const r = recordSchema(spec).safeParse(data);
   if (r.success) return { outcome: "ok", data: r.data };
   return { outcome: "schema_failure", issues: r.error.issues.map((i) => `${i.path.join(".") || "record"}: ${i.message}`) };
+}
+
+/** Share of records in which each field is null. */
+export function nullRates(fields: string[], records: Record<string, unknown>[]): Record<string, number> {
+  const n = Math.max(records.length, 1);
+  return Object.fromEntries(fields.map((f) => [f, records.filter((r) => r[f] === null || r[f] === undefined).length / n]));
+}
+
+export interface DriftOptions {
+  /** Fewer records than this is not evidence (Runtime tab: 20). */
+  minRecords?: number;
+  /** Null rate rise, in rate points, that counts as drift (Runtime tab: 0.2). */
+  tolerance?: number;
+}
+
+/** Fields whose null rate rose past tolerance against expected.json `stats.nullRate` (D8, Runtime tab "Change detection"). */
+export function driftingFields(expected: Record<string, number>, records: Record<string, unknown>[], opts: DriftOptions = {}): string[] {
+  const { minRecords = 20, tolerance = 0.2 } = opts;
+  if (records.length < minRecords) return [];
+  const actual = nullRates(Object.keys(expected), records);
+  return Object.keys(expected).filter((f) => actual[f]! - expected[f]! > tolerance);
 }

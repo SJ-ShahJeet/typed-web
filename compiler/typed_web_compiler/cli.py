@@ -1,12 +1,15 @@
 """`compile <url> --type <Type> --out <dir> [--samples id,id]` and `repair <site>`.
 
 Wires the ladder (design doc, Compiler tab): fetch -> detect -> locate -> emit. The compiler
-stops at the first step after which every required field has a source (D4).
+stops at the first step after which every required field has a source (D4). `repair` re-runs
+the ladder on the page `expected.json` remembers, bumps `version`, and moves status.json
+repairing -> ok, or -> schema_failure for a person to look at (Runtime tab, state table).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 from urllib import robotparser
@@ -204,13 +207,47 @@ def compile_main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def repair_site(out: Path) -> Spec:
+    """Recompile one registry folder as the next version; the old files stay until the new spec verifies."""
+    spec = emit.load_spec(out / "spec.json")
+    expected = json.loads((out / "expected.json").read_text(encoding="utf-8"))
+    ids = [r["id"] for r in expected["records"]]
+    page_template = expected.get("compile", {}).get("pageUrl", spec.fetch.url)
+    page_url = page_template.replace("{id}", ids[0])
+    emit.write_status(out, "repairing", spec.version, {"from": spec.version})
+    log(f"repair: {spec.site} v{spec.version} -> v{spec.version + 1}; status repairing")
+    try:
+        live = fetch.plain(page_url, fetch.PAGE_HEADERS)
+        changed = live.body != (out / "snapshot.html").read_bytes()
+        log(f"repair: {page_url} {'changed' if changed else 'unchanged'} since the snapshot")
+        tree = HTMLParser(live.text)
+        for f, fs in spec.fields.items():
+            for src in fs.sources:
+                if isinstance(src, CssSource) and not tree.css(src.selector):
+                    log(f"repair: {f}: css {src.selector!r} no longer matches")
+        new, _ = compile_site(page_url, spec.type, out, samples=ids[1:], version=spec.version + 1)
+    except (CompileError, emit.VerifyError) as err:
+        emit.write_status(out, "schema_failure", spec.version, {"repair": str(err)})
+        log(f"repair: failed; status schema_failure, nothing changed: {err}")
+        raise
+    emit.write_status(out, "ok", new.version, {"repairedFrom": spec.version})
+    log(f"repair: {new.site} v{new.version} verified on {len(ids)} pages; status ok")
+    return new
+
+
 def repair_main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="repair", description="Recompile a flagged site.")
-    p.add_argument("site", help="Registry folder name under specs/")
+    p.add_argument("site", help="Registry folder name under specs/, or a path to one")
     args = p.parse_args(argv)
-    print(f"repair: {args.site}", file=sys.stderr)
-    print("not implemented yet: milestone 1 build step 5 (change detection + repair)", file=sys.stderr)
-    return 2
+    out = Path(args.site) if Path(args.site).is_dir() else emit.ROOT / "specs" / args.site
+    if not (out / "spec.json").exists():
+        log(f"repair: no spec.json in {out}")
+        return 2
+    try:
+        repair_site(out)
+    except (CompileError, emit.VerifyError):
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

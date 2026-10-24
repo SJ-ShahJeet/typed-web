@@ -8,7 +8,7 @@ cd "$HERE"
 
 python3 fixtures/serve.py --quiet &
 SERVER=$!
-trap 'kill $SERVER 2>/dev/null; git -C "$HERE" checkout -- fixtures/pages/ssr 2>/dev/null || true' EXIT
+trap 'kill $SERVER 2>/dev/null; wait $SERVER 2>/dev/null; git -C "$HERE" checkout -- fixtures/pages/ssr specs/fixture-ssr 2>/dev/null || true' EXIT
 sleep 0.5
 
 step() { printf '\n== %s\n' "$*"; }
@@ -24,7 +24,7 @@ step "check: expect ok"
 grep -q '"state": "ok"' specs/fixture-ssr/status.json
 
 step "break the site: span.price -> span.cost"
-sed -i '' 's/class="price"/class="cost"/' fixtures/pages/ssr/*.html
+for f in fixtures/pages/ssr/*.html; do sed 's/class="price"/class="cost"/' "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
 
 step "check: expect schema_failure"
 (cd runtime && npx tsx src/cli.ts check ../specs/fixture-ssr/spec.json) || true
